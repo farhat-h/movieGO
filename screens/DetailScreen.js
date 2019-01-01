@@ -5,30 +5,95 @@ import * as Colors from "../theme";
 import * as API from "../api";
 import StarRating from "../components/StarRating.js";
 import { LinearGradient } from "expo";
+import TRS from "../components/TRS.js";
+import { TapGestureHandler, State } from "react-native-gesture-handler";
+import Loading from "../components/Loading.js";
 
 export default class DetailScreen extends PureComponent {
-  render() {
-    const backdrop = API.img_backDrop + data.backdrop_path;
-    const genres = data.genres.map((item, index) => (
-      <Text style={styles.genre} key={`${index}`}>
+  state = {
+    canShowGallery: false,
+    loading: true,
+    images: [],
+    details: {}
+  };
+
+  componentDidMount = () => {
+    const movieId = this.props.navigation.getParam("movieId");
+    const detailURL = API.getDetails(movieId);
+    fetch(API.getImagesURL(movieId))
+      .then(res => res.json())
+      .then(data => {
+        this.setState({ images: data.posters, canShowGallery: true });
+      });
+    fetch(detailURL)
+      .then(res => res.json())
+      .then(data => this.setState({ loading: false, details: data }));
+  };
+
+  _tapGesture = ({ nativeEvent }) => {
+    if (nativeEvent.oldState == State.ACTIVE && this.state.canShowGallery) {
+      this.props.navigation.navigate("Gallery", { images: this.state.images });
+    }
+  };
+  _renderGenres = () => {
+    return this.state.details.genres.map((item, index) => (
+      <Text
+        numberOfLines={1}
+        ellipsizeMode="clip"
+        style={styles.genre}
+        key={`${index}`}
+      >
         {item.name}
-        {index == data.genres.length - 1 ? "" : " / "}
+        {index == this.state.details.genres.length - 1 ? "" : " / "}
       </Text>
     ));
-    return (
+  };
+  render() {
+    const backdrop = API.img_backDrop + this.state.details.backdrop_path;
+    const poster = API.img_poster + this.state.details.poster_path;
+
+    return this.state.loading ? (
+      <Loading />
+    ) : (
       <View style={styles.container}>
-        <ImageBackground source={{ uri: backdrop }} style={styles.backdrop}>
-          <LinearGradient
-            style={styles.gradient}
-            colors={["transparent", "rgba(0,0,0,0.8)"]}
-          />
-          <View style={styles.titleWrapper}>
-            <Text style={styles.title}>{data.original_title}</Text>
-            <StarRating vote_average={data.vote_average} />
+        <TapGestureHandler
+          onGestureEvent={this._showModalHandler}
+          onHandlerStateChange={this._tapGesture}
+        >
+          <View>
+            <ImageBackground source={{ uri: backdrop }} style={styles.backdrop}>
+              <LinearGradient
+                style={styles.gradient}
+                colors={["transparent", "rgba(0,0,0,0.8)"]}
+              />
+              <View style={styles.titleWrapper}>
+                <Image style={styles.poster} source={{ uri: poster }} />
+                <View>
+                  <Text
+                    numberOfLines={1}
+                    ellipsizeMode="clip"
+                    style={styles.title}
+                  >
+                    {this.state.details.original_title}
+                  </Text>
+                  <StarRating vote_average={this.state.details.vote_average} />
+                </View>
+              </View>
+            </ImageBackground>
           </View>
-        </ImageBackground>
-        <View style={styles.genres_wrapper}>{genres}</View>
-        <Text style={{ color: "white" }}>{data.overview}</Text>
+        </TapGestureHandler>
+        <View style={styles.content}>
+          <TRS
+            vote_average={this.state.details.vote_average}
+            revenue={this.state.details.revenue}
+            runtime={this.state.details.runtime}
+          />
+          <View style={styles.genres_wrapper}>{this._renderGenres()}</View>
+          <Text style={styles.plot}>{this.state.details.overview}</Text>
+          <View>
+            <Text>Gallery goes here</Text>
+          </View>
+        </View>
       </View>
     );
   }
@@ -43,9 +108,12 @@ const styles = StyleSheet.create({
     position: "absolute",
     bottom: 8,
     left: 16,
+    flexDirection: "row",
+    alignItems: "center",
     width: "80%"
   },
   title: {
+    maxWidth: "100%",
     color: "white",
     fontSize: 24,
     fontWeight: "bold",
@@ -67,9 +135,7 @@ const styles = StyleSheet.create({
     width: 85,
     height: 110,
     borderRadius: 6,
-    position: "absolute",
-    top: -50,
-    left: 32
+    marginRight: 16
   },
   genre: {
     fontSize: 16,
@@ -79,7 +145,16 @@ const styles = StyleSheet.create({
   },
   genres_wrapper: {
     flexDirection: "row",
+    marginBottom: 16
+  },
+  content: {
     paddingHorizontal: 16,
     paddingTop: 16
+  },
+  plot: {
+    lineHeight: 24,
+    fontSize: 14,
+    fontWeight: "300",
+    color: "white"
   }
 });

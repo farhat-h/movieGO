@@ -35,7 +35,7 @@ export default class HomeScreen extends PureComponent {
     }
   };
   _renderItem = ({ item, index }) => {
-    return <ListItem {...item} />;
+    return <ListItem onPress={this._navigate} {...item} />;
   };
   _keyExtractor = item => `${item.id}`;
   _search = textString => {
@@ -49,6 +49,9 @@ export default class HomeScreen extends PureComponent {
         pageLimit: data.total_pages
       })
     );
+  };
+  _navigate = movieId => {
+    this.props.navigation.navigate("DetailStack", { movieId });
   };
   render() {
     return (

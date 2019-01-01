@@ -3,6 +3,8 @@ import { Text, View, StyleSheet, Image } from "react-native";
 import * as theme from "../theme";
 import StarRating from "./StarRating";
 import { img_poster } from "../api";
+import { TapGestureHandler, State } from "react-native-gesture-handler";
+
 class ListItem extends PureComponent {
   limitTitle = () => {
     let _title = this.props.title;
@@ -11,26 +13,33 @@ class ListItem extends PureComponent {
     }
     return _title;
   };
+  _onTap = ({ nativeEvent }) => {
+    if (nativeEvent.oldState == State.ACTIVE) {
+      this.props.onPress(this.props.id);
+    }
+  };
   render() {
     return (
-      <View style={styles.wrapper}>
-        <Image
-          style={styles.image}
-          source={{
-            uri: img_poster + this.props.poster_path
-          }}
-        />
-        <View>
-          <Text style={styles.year}>
-            {this.props.release_date.substring(0, 4)}
-          </Text>
-          <Text style={styles.title}>{this.limitTitle()}</Text>
-          <StarRating vote_average={this.props.vote_average} />
+      <TapGestureHandler onHandlerStateChange={this._onTap}>
+        <View style={styles.wrapper}>
+          <Image
+            style={styles.image}
+            source={{
+              uri: img_poster + this.props.poster_path
+            }}
+          />
+          <View>
+            <Text style={styles.year}>
+              {this.props.release_date.substring(0, 4)}
+            </Text>
+            <Text style={styles.title}>{this.limitTitle()}</Text>
+            <StarRating vote_average={this.props.vote_average} />
+          </View>
+          <View style={styles.score_circle}>
+            <Text style={styles.score}>{this.props.vote_average}</Text>
+          </View>
         </View>
-        <View style={styles.score_circle}>
-          <Text style={styles.score}>{this.props.vote_average}</Text>
-        </View>
-      </View>
+      </TapGestureHandler>
     );
   }
 }

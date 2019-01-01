@@ -2,6 +2,8 @@ const api_key = "87a95af58348ccd1fc85f39184d9cb60";
 export const base = "https://api.themoviedb.org/3/movie";
 export const img_backDrop = "https://image.tmdb.org/t/p/w780";
 export const img_poster = "https://image.tmdb.org/t/p/w185";
+export const img_gallery = "https://image.tmdb.org/t/p/original";
+
 export const latest =
   "https://api.themoviedb.org/3/movie/now_playing?api_key=87a95af58348ccd1fc85f39184d9cb60&language=en-US";
 export const popular =
@@ -11,6 +13,20 @@ export const upcoming =
 export const search =
   "https://api.themoviedb.org/3/search/movie?api_key=87a95af58348ccd1fc85f39184d9cb60&language=en-US&query=";
 
+export const getImagesURL = movieID => {
+  return `https://api.themoviedb.org/3/movie/${movieID}/images?api_key=87a95af58348ccd1fc85f39184d9cb60&language=en-US&include_image_language=en`;
+};
+export const getDetails = movieId =>
+  `https://api.themoviedb.org/3/movie/${movieId}?api_key=87a95af58348ccd1fc85f39184d9cb60&language=en-US`;
+export const minutesToString = minutes => {
+  const hours = Math.floor(minutes / 60);
+  const rest = minutes % 60;
+  return `${hours}h:${rest}`;
+};
+export const moneyString = money => {
+  let result = `${(money / 1e6).toFixed(2)}M`;
+  return result;
+};
 const baseURL = {
   base,
   img_backDrop,
